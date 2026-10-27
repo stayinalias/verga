@@ -1,0 +1,27 @@
+/* Premium Custom GUI Theme & Animate.css Integration */
+@import 'animate.css';
+
+:root {
+    --bg-primary: #0a0b0e;
+    --bg-secondary: #12141c;
+    --accent-color: #6366f1;
+    --text-color: #f3f4f6;
+}
+
+body, html {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-color) !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.stremio-web-container, .card, .modal {
+    background-color: var(--bg-secondary) !important;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+/* Tab & Menu Transitions using Animate.css */
+.view-container {
+    animation: fadeIn 0.4s ease-in-out;
+}
