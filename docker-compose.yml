@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  nginx-gateway:
+    image: nginx:alpine
+    container_name: streaming-nginx-gateway
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - stremio-web
+      - torrentio-scraper
+      - streaming-server-1
+      - streaming-server-2
+      - remux-service
+    restart: always
+    networks:
+      - streaming-net
+
+  stremio-web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: stremio-web-ui
+    environment:
+      - NODE_ENV=production
+    restart: always
+    networks:
+      - streaming-net
+
+  torrentio-scraper:
+    image: node:18-alpine
+    container_name: torrentio-scraper
+    working_dir: /app
+    command: sh -c "npm install -g torrentio-scraper || (git clone https://github.com/TheBeastLT/torrentio-scraper.git . && npm install && npm run build)"
+    environment:
+      - PORT=7000
+    restart: always
+    networks:
+      - streaming-net
+
+  streaming-server-1:
+    image: node:18-alpine
+    container_name: streaming-server-1
+    working_dir: /app
+    command: sh -c "npm install -g stremio-streaming-server || true; stremio-streaming-server --port 11470"
+    ports:
+      - "11470"
+    restart: always
+    networks:
+      - streaming-net
+
+  streaming-server-2:
+    image: node:18-alpine
+    container_name: streaming-server-2
+    working_dir: /app
+    command: sh -c "npm install -g stremio-streaming-server || true; stremio-streaming-server --port 11470"
+    ports:
+      - "11471"
+    restart: always
+    networks:
+      - streaming-net
+
+  remux-service:
+    build:
+      context: ./remux-service
+      dockerfile: Dockerfile
+    container_name: remux-service
+    ports:
+      - "4000:4000"
+    restart: always
+    networks:
+      - streaming-net
+
+networks:
+  streaming-net:
+    driver: bridge
