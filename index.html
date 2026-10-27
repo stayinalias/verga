@@ -27,14 +27,18 @@
             overflow: hidden;
         }
 
+        /* Fixed top control bar so it never gets covered */
         .top-bar {
-            padding: 12px 20px;
+            height: 60px;
             background: var(--panel-bg);
             border-bottom: 1px solid var(--border-color);
             display: flex;
-            gap: 10px;
             align-items: center;
-            flex-wrap: wrap;
+            padding: 0 20px;
+            gap: 15px;
+            flex-shrink: 0;
+            box-sizing: border-box;
+            z-index: 10;
         }
 
         input {
@@ -48,12 +52,14 @@
         }
 
         input[type="text"] {
-            flex: 1;
-            min-width: 220px;
-            max-width: 320px;
+            width: 240px;
         }
 
-        /* Dropdown selector matching your reference image */
+        input[type="number"] {
+            width: 70px;
+        }
+
+        /* Dropdown selector styling */
         .server-select-wrapper {
             position: relative;
             display: inline-block;
@@ -63,7 +69,7 @@
             background: var(--dropdown-bg);
             border: 1px solid var(--border-color);
             color: var(--text-main);
-            padding: 9px 35px 9px 15px;
+            padding: 8px 35px 8px 14px;
             border-radius: 6px;
             font-size: 14px;
             font-weight: 600;
@@ -72,17 +78,15 @@
             appearance: none;
             -webkit-appearance: none;
             -moz-appearance: none;
-            transition: border-color 0.2s;
         }
 
         select.server-dropdown:hover {
             border-color: var(--accent);
         }
 
-        /* Custom dropdown arrow icon */
         .server-select-wrapper::after {
             content: "▼";
-            font-size: 10px;
+            font-size: 9px;
             color: var(--text-muted);
             position: absolute;
             right: 12px;
@@ -95,7 +99,7 @@
             background: var(--accent);
             color: white;
             border: none;
-            padding: 9px 18px;
+            padding: 8px 16px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
@@ -106,10 +110,12 @@
             background: #2563eb;
         }
 
+        /* Container that fills the remaining screen space underneath the top bar */
         .player-wrapper {
-            flex: 1;
+            flex-grow: 1;
             background: #000;
-            position: relative;
+            width: 100%;
+            height: calc(100vh - 60px);
         }
 
         iframe {
@@ -121,8 +127,8 @@
 </head>
 <body>
 
+    <!-- Top Navigation Bar (Always Visible) -->
     <div class="top-bar">
-        <!-- Dropdown Server Selector Menu -->
         <div class="server-select-wrapper">
             <select id="serverSelect" class="server-dropdown" onchange="updateStream()">
                 <option value="0">Main 1 (VidSrc.cc)</option>
@@ -141,17 +147,17 @@
         </div>
 
         <input type="text" id="mediaId" placeholder="IMDb ID (e.g. tt1375666)" value="tt1375666">
-        <input type="number" id="seasonNum" placeholder="Season" style="width: 80px; display: none;" onchange="updateStream()">
-        <input type="number" id="episodeNum" placeholder="Ep" style="width: 65px; display: none;" onchange="updateStream()">
+        <input type="number" id="seasonNum" placeholder="Season" onchange="updateStream()">
+        <input type="number" id="episodeNum" placeholder="Ep" onchange="updateStream()">
         <button class="load-btn" onclick="updateStream()">Load Stream</button>
     </div>
 
+    <!-- Video Player Frame Area -->
     <div class="player-wrapper">
         <iframe id="streamFrame" allowfullscreen></iframe>
     </div>
 
     <script>
-        // 12+ Working streaming server endpoints matching your drop-down options
         const servers = [
             (id, s, e) => s ? `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}` : `https://vidsrc.cc/v2/embed/movie/${id}`,
             (id, s, e) => s ? `https://vidsrc.to/embed/tv/${id}/${s}/${e}` : `https://vidsrc.to/embed/movie/${id}`,
@@ -176,12 +182,10 @@
 
             if (!id) return;
 
-            // Generate source URL based on the selected dropdown index
             const targetUrl = servers[serverIndex](id, s, e);
             document.getElementById('streamFrame').src = targetUrl;
         }
 
-        // Auto load default stream on startup
         updateStream();
     </script>
 </body>
