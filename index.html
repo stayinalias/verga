@@ -27,7 +27,7 @@
             overflow: hidden;
         }
 
-        /* Fixed top control bar so it never gets covered */
+        /* Top control bar */
         .top-bar {
             height: 60px;
             background: var(--panel-bg);
@@ -38,7 +38,7 @@
             gap: 15px;
             flex-shrink: 0;
             box-sizing: border-box;
-            z-index: 10;
+            z-index: 999;
         }
 
         input {
@@ -59,7 +59,6 @@
             width: 70px;
         }
 
-        /* Dropdown selector styling */
         .server-select-wrapper {
             position: relative;
             display: inline-block;
@@ -110,7 +109,6 @@
             background: #2563eb;
         }
 
-        /* Container that fills the remaining screen space underneath the top bar */
         .player-wrapper {
             flex-grow: 1;
             background: #000;
@@ -127,7 +125,6 @@
 </head>
 <body>
 
-    <!-- Top Navigation Bar (Always Visible) -->
     <div class="top-bar">
         <div class="server-select-wrapper">
             <select id="serverSelect" class="server-dropdown" onchange="updateStream()">
@@ -152,9 +149,9 @@
         <button class="load-btn" onclick="updateStream()">Load Stream</button>
     </div>
 
-    <!-- Video Player Frame Area -->
     <div class="player-wrapper">
-        <iframe id="streamFrame" allowfullscreen></iframe>
+        <!-- The sandbox attribute below permanently locks the iframe so it cannot hijack your website -->
+        <iframe id="streamFrame" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
     </div>
 
     <script>
