@@ -32,9 +32,9 @@
             flex-direction: column;
         }
 
-        /* Integrated Control Banner */
+        /* Top Integrated Banner */
         .top-banner {
-            height: 52px;
+            height: 56px;
             background: var(--panel-bg);
             border-bottom: 1px solid var(--border-color);
             display: flex;
@@ -61,12 +61,130 @@
             color: var(--accent);
         }
 
-        .quick-stream-bar {
+        /* Live Title-to-IMDb Search Box */
+        .search-wrapper {
+            position: relative;
+            flex-grow: 1;
+            max-width: 320px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 7px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent);
+        }
+
+        .search-results-dropdown {
+            position: absolute;
+            top: 42px;
+            left: 0;
+            right: 0;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            max-height: 350px;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+            display: none;
+            z-index: 2000;
+        }
+
+        .result-item {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .result-item:hover {
+            background: #1e2230;
+        }
+
+        .result-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .result-info img {
+            width: 32px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 4px;
+            background: #282d3c;
+            flex-shrink: 0;
+        }
+
+        .result-details {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .result-title {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .result-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .imdb-tag-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #0b0c10;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .imdb-tag {
+            font-size: 11px;
+            font-weight: 700;
+            color: #f5c518; /* Official IMDb Yellow */
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 13px;
+            padding: 0 2px;
+            display: flex;
+            align-items: center;
+        }
+
+        .copy-btn:hover {
+            color: #fff;
+        }
+
+        /* Controls Section */
+        .controls-bar {
             display: flex;
             align-items: center;
             gap: 8px;
-            flex-grow: 1;
-            max-width: 750px;
         }
 
         select, input, button {
@@ -77,11 +195,6 @@
             border-radius: 6px;
             font-size: 13px;
             outline: none;
-            transition: border-color 0.2s;
-        }
-
-        select:focus, input:focus {
-            border-color: var(--accent);
         }
 
         select {
@@ -90,12 +203,12 @@
             font-weight: 600;
         }
 
-        input[type="text"] {
-            width: 170px;
+        input[type="text"].id-input {
+            width: 120px;
         }
 
         input[type="number"] {
-            width: 60px;
+            width: 55px;
         }
 
         button.btn-play {
@@ -103,7 +216,7 @@
             color: white;
             border: none;
             font-weight: 700;
-            padding: 7px 16px;
+            padding: 7px 14px;
             cursor: pointer;
             border-radius: 6px;
             transition: background 0.2s;
@@ -114,11 +227,11 @@
             background: var(--accent-hover);
         }
 
-        /* Stremio Portal Container */
+        /* Portal Container & Overlays */
         .portal-container {
             flex-grow: 1;
             width: 100%;
-            height: calc(100vh - 52px);
+            height: calc(100vh - 56px);
             position: relative;
         }
 
@@ -128,12 +241,11 @@
             border: none;
         }
 
-        /* In-App Sanitized Player View */
         .player-overlay {
             position: absolute;
             inset: 0;
             background: #000;
-            z-index: 2000;
+            z-index: 3000;
             display: none;
             flex-direction: column;
         }
@@ -159,10 +271,6 @@
             font-size: 12px;
         }
 
-        .close-player-btn:hover {
-            background: #dc2626;
-        }
-
         iframe.stream-frame {
             width: 100%;
             height: calc(100% - 44px);
@@ -172,108 +280,20 @@
 </head>
 <body>
 
-    <!-- Control Banner Over Stremio Web -->
+    <!-- Top Banner -->
     <div class="top-banner">
         <div class="brand"><span>VERGA</span> STREMIO</div>
         
-        <div class="quick-stream-bar">
+        <!-- Live Movie Title to IMDb ID Search -->
+        <div class="search-wrapper">
+            <input type="text" id="titleSearchInput" class="search-input" placeholder="Search Movie Title (e.g. Spiderman brand new day)..." oninput="debounceSearch()">
+            <div id="searchResults" class="search-results-dropdown"></div>
+        </div>
+
+        <div class="controls-bar">
             <select id="serverSelect">
                 <option value="0">Server 1 (VidSrc.cc)</option>
                 <option value="1">Server 2 (VidSrc.to)</option>
                 <option value="2">Server 3 (VidSrc.su)</option>
                 <option value="3">Server 4 (VidLink Pro)</option>
-                <option value="4">Server 5 (MultiEmbed)</option>
-                <option value="5">Server 6 (AutoEmbed)</option>
-                <option value="6">Server 7 (MoviesAPI)</option>
-                <option value="7">Server 8 (2Embed)</option>
-                <option value="8">Server 9 (VidFast)</option>
-                <option value="9">Server 10 (VidSrc VIP)</option>
-            </select>
-
-            <input type="text" id="imdbIdInput" placeholder="IMDb ID (tt1375666)" value="tt1375666">
-            <input type="number" id="seasonInput" placeholder="Season" min="1">
-            <input type="number" id="episodeInput" placeholder="Ep" min="1">
-
-            <button class="btn-play" onclick="playInAppStream()">▶ Stream Now</button>
-            <button class="btn-play" style="background:#282d3c;" onclick="loadInStremio()">🔍 Load in Stremio</button>
-        </div>
-    </div>
-
-    <!-- Main View: Official Stremio Web UI -->
-    <div class="portal-container">
-        <iframe id="stremioFrame" class="stremio-frame" src="https://web.strem.io/#/" allowfullscreen></iframe>
-
-        <!-- In-App Stream Player Overlay -->
-        <div class="player-overlay" id="playerOverlay">
-            <div class="player-bar">
-                <span id="playerStatus" style="font-size: 13px; font-weight: 600;">Active Stream Player</span>
-                <button class="close-player-btn" onclick="closeStreamPlayer()">✕ Close Player & Back to Catalog</button>
-            </div>
-            <!-- Player Frame Sandbox prevents external redirect hijacking -->
-            <iframe id="streamPlayerFrame" class="stream-frame" allow="fullscreen; autoplay; encrypted-media"></iframe>
-        </div>
-    </div>
-
-    <script>
-        const streamProviders = [
-            (id, s, e) => s ? `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}` : `https://vidsrc.cc/v2/embed/movie/${id}`,
-            (id, s, e) => s ? `https://vidsrc.to/embed/tv/${id}/${s}/${e}` : `https://vidsrc.to/embed/movie/${id}`,
-            (id, s, e) => s ? `https://vidsrc.su/embed/tv/${id}/${s}/${e}` : `https://vidsrc.su/embed/movie/${id}`,
-            (id, s, e) => s ? `https://vidlink.pro/tv/${id}/${s}/${e}` : `https://vidlink.pro/movie/${id}`,
-            (id, s, e) => `https://multiembed.mov/?video_id=${id}${s ? `&s=${s}&e=${e}` : ''}`,
-            (id, s, e) => `https://player.autoembed.cc/embed/movie/${id}`,
-            (id, s, e) => s ? `https://moviesapi.club/tv/${id}-${s}-${e}` : `https://moviesapi.club/movie/${id}`,
-            (id, s, e) => s ? `https://www.2embed.stream/embed/tv/${id}/${s}/${e}` : `https://www.2embed.stream/embed/movie/${id}`,
-            (id, s, e) => s ? `https://vidfast.pro/embed/tv/${id}/${s}/${e}` : `https://vidfast.pro/embed/movie/${id}`,
-            (id, s, e) => s ? `https://vidsrc.vip/embed/tv/${id}/${s}/${e}` : `https://vidsrc.vip/embed/movie/${id}`
-        ];
-
-        // Resolves IMDb IDs directly into Stremio's internal deep-link routing
-        function loadInStremio() {
-            const rawId = document.getElementById('imdbIdInput').value.trim();
-            if (!rawId) {
-                alert("Please enter a valid IMDb ID (e.g., tt1375666)");
-                return;
-            }
-
-            const formattedId = rawId.startsWith('tt') ? rawId : `tt${rawId}`;
-            const season = document.getElementById('seasonInput').value;
-            const episode = document.getElementById('episodeInput').value;
-
-            let stremioUrl = "";
-            if (season && episode) {
-                stremioUrl = `https://web.strem.io/#/detail/series/${formattedId}/${formattedId}%3A${season}%3A${episode}`;
-            } else {
-                stremioUrl = `https://web.strem.io/#/detail/movie/${formattedId}/${formattedId}`;
-            }
-
-            document.getElementById('stremioFrame').src = stremioUrl;
-        }
-
-        // Plays stream directly inside an in-app layer over your dashboard (no new tabs or window locks)
-        function playInAppStream() {
-            const rawId = document.getElementById('imdbIdInput').value.trim();
-            if (!rawId) {
-                alert("Please enter a valid IMDb ID");
-                return;
-            }
-
-            const formattedId = rawId.startsWith('tt') ? rawId : `tt${rawId}`;
-            const serverIdx = parseInt(document.getElementById('serverSelect').value);
-            const season = document.getElementById('seasonInput').value;
-            const episode = document.getElementById('episodeInput').value;
-
-            const targetUrl = streamProviders[serverIdx](formattedId, season, episode);
-
-            document.getElementById('playerStatus').innerText = `Streaming ${formattedId} on Server ${serverIdx + 1}`;
-            document.getElementById('streamPlayerFrame').src = targetUrl;
-            document.getElementById('playerOverlay').style.display = 'flex';
-        }
-
-        function closeStreamPlayer() {
-            document.getElementById('streamPlayerFrame').src = 'about:blank';
-            document.getElementById('playerOverlay').style.display = 'none';
-        }
-    </script>
-</body>
-</html>
+                <option value="4">Server 5 (Multi
