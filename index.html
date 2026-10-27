@@ -251,3 +251,146 @@
             .modal-body {
                 flex-direction: column;
             }
+            .modal-poster {
+                width: 100%;
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><span>VERGA</span> Dashboard</div>
+        <div class="controls">
+            <select id="serverSelect">
+                <option value="0">Main 1 (VidSrc.cc)</option>
+                <option value="1">Main 2 (VidSrc.to)</option>
+                <option value="2">Main 3 (VidSrc.su)</option>
+                <option value="3">Main 4 (VidLink)</option>
+                <option value="4">Main 5 (MultiEmbed)</option>
+                <option value="5">Main 6 (AutoEmbed)</option>
+                <option value="6">Main 7 (MoviesAPI)</option>
+                <option value="7">Main 8 (VidZee)</option>
+                <option value="8">Main 9 (2Embed)</option>
+                <option value="9">Main 10 (VidFast)</option>
+                <option value="10">Multi-language (VidSrc Me)</option>
+                <option value="11">Premium embeds (VidSrc VIP)</option>
+            </select>
+            <input type="text" id="manualId" placeholder="IMDb ID (tt1375666)">
+            <button class="btn-primary" onclick="launchManual()">Quick Stream</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="section-title">
+            <span>Featured Movies & Shows</span>
+        </div>
+        <div class="movie-grid" id="catalogGrid"></div>
+    </main>
+
+    <div class="modal-overlay" id="mediaModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Media Details</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <img id="modalPoster" class="modal-poster" src="" alt="Poster">
+                <div class="modal-details">
+                    <p id="modalOverview" style="color: var(--text-muted); font-size: 14px;"></p>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-primary" style="padding: 10px 20px;" onclick="playSelectedStream()">▶ Stream Movie</button>
+                    </div>
+                    <div class="trailer-container" id="trailerBox"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const catalog = [
+            { id: "tt1375666", title: "Inception", year: 2010, type: "Movie", poster: "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg", youtube: "YoHD9XEInc0", desc: "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea." },
+            { id: "tt0816692", title: "Interstellar", year: 2014, type: "Movie", poster: "https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGc@._V1_SX300.jpg", youtube: "zSWdZVtXT7E", desc: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival." },
+            { id: "tt0468569", title: "The Dark Knight", year: 2008, type: "Movie", poster: "https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_SX300.jpg", youtube: "EXeTwQWrcwY", desc: "When the menace known as the Joker wreaks havoc and chaos on Gotham, Batman must accept one of the greatest tests." },
+            { id: "tt15398776", title: "Oppenheimer", year: 2023, type: "Movie", poster: "https://m.media-amazon.com/images/M/MV5BN2JkMDc5MGQtZGUzMC00NmE5LWEiNGYtMjc3NWJhM2E3N2ExXkEyXkFqcGc@._V1_SX300.jpg", youtube: "uYPbbksJxIg", desc: "The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb." },
+            { id: "tt0944947", title: "Game of Thrones", year: 2011, type: "TV Series", poster: "https://m.media-amazon.com/images/M/MV5BNDgwNzI1NTI1M15BMl5BanBnXkFtZTgwMDM2MDgzTE@._V1_SX300.jpg", youtube: "gcTkNV5Vg1E", desc: "Nine noble families fight for control over the lands of Westeros, while an ancient enemy returns." },
+            { id: "tt0903747", title: "Breaking Bad", year: 2008, type: "TV Series", poster: "https://m.media-amazon.com/images/M/MV5BMzU5ZGYzNmQtMTdhYy00OGRiLTg0NmQtYjVjNzliZTg1ZGE4XkEyXkFqcGc@._V1_SX300.jpg", youtube: "HhesaQXLuRY", desc: "A chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing methamphetamine." }
+        ];
+
+        const servers = [
+            (id, s, e) => s ? `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}` : `https://vidsrc.cc/v2/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidsrc.to/embed/tv/${id}/${s}/${e}` : `https://vidsrc.to/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidsrc.su/embed/tv/${id}/${s}/${e}` : `https://vidsrc.su/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidlink.pro/tv/${id}/${s}/${e}` : `https://vidlink.pro/movie/${id}`,
+            (id, s, e) => `https://multiembed.mov/?video_id=${id}${s ? `&s=${s}&e=${e}` : ''}`,
+            (id, s, e) => `https://player.autoembed.cc/embed/movie/${id}`,
+            (id, s, e) => s ? `https://moviesapi.club/tv/${id}-${s}-${e}` : `https://moviesapi.club/movie/${id}`,
+            (id, s, e) => `https://vidzee.za.com/embed/${id}`,
+            (id, s, e) => s ? `https://www.2embed.stream/embed/tv/${id}/${s}/${e}` : `https://www.2embed.stream/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidfast.pro/embed/tv/${id}/${s}/${e}` : `https://vidfast.pro/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidsrc.me/embed/tv?imdb=${id}&s=${s}&e=${e}` : `https://vidsrc.me/embed/movie?imdb=${id}`,
+            (id, s, e) => s ? `https://vidsrc.vip/embed/tv/${id}/${s}/${e}` : `https://vidsrc.vip/embed/movie/${id}`
+        ];
+
+        let activeMedia = null;
+
+        function renderCatalog() {
+            const grid = document.getElementById('catalogGrid');
+            grid.innerHTML = catalog.map(item => `
+                <div class="card" onclick="openModal('${item.id}')">
+                    <img src="${item.poster}" alt="${item.title}">
+                    <div class="card-info">
+                        <div class="card-title">${item.title}</div>
+                        <div class="card-meta">
+                            <span>${item.year}</span>
+                            <span>${item.type}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openModal(id) {
+            activeMedia = catalog.find(m => m.id === id);
+            if (!activeMedia) return;
+
+            document.getElementById('modalTitle').innerText = activeMedia.title + ` (${activeMedia.year})`;
+            document.getElementById('modalPoster').src = activeMedia.poster;
+            document.getElementById('modalOverview').innerText = activeMedia.desc;
+            
+            // Embed official YouTube trailer
+            document.getElementById('trailerBox').innerHTML = `
+                <iframe src="https://www.youtube-nocookie.com/embed/${activeMedia.youtube}" allowfullscreen></iframe>
+            `;
+
+            document.getElementById('mediaModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('mediaModal').style.display = 'none';
+            document.getElementById('trailerBox').innerHTML = '';
+        }
+
+        function playSelectedStream() {
+            if (!activeMedia) return;
+            const serverIdx = parseInt(document.getElementById('serverSelect').value);
+            const targetUrl = servers[serverIdx](activeMedia.id);
+            window.open(targetUrl, '_blank');
+        }
+
+        function launchManual() {
+            const id = document.getElementById('manualId').value.trim();
+            if (!id) {
+                alert("Please enter a valid IMDb ID");
+                return;
+            }
+            const serverIdx = parseInt(document.getElementById('serverSelect').value);
+            const targetUrl = servers[serverIdx](id);
+            window.open(targetUrl, '_blank');
+        }
+
+        renderCatalog();
+    </script>
+</body>
+</html>
