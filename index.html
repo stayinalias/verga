@@ -3,43 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Streaming Platform</title>
+    <title>VERGA - Streaming Platform</title>
     <style>
+        :root {
+            --bg-color: #0a0b0e;
+            --panel-bg: #12141c;
+            --border-color: #2a2e3d;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --accent: #3b82f6;
+        }
+
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #0a0b0e;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             display: flex;
             flex-direction: column;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
-        /* Top Bar for custom stream controls if needed */
+        /* Top Navigation & Mode Switcher */
         .top-bar {
-            height: 45px;
-            background: #12141c;
-            border-bottom: 1px solid #2a2e3d;
+            height: 50px;
+            background: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 15px;
-            color: #9ca3af;
-            font-size: 13px;
+            padding: 0 20px;
             flex-shrink: 0;
+            z-index: 999;
         }
 
-        .top-bar span {
+        .brand {
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: 0.5px;
             color: #fff;
-            font-weight: 600;
+        }
+        .brand span { color: var(--accent); }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
         }
 
-        .stremio-container {
+        .tab-btn {
+            background: #1a1d28;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Content Views */
+        .view-container {
             flex-grow: 1;
             width: 100%;
-            height: calc(100vh - 45px);
+            height: calc(100vh - 50px);
+            position: relative;
+        }
+
+        .view {
+            position: absolute;
+            inset: 0;
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .view.active {
+            display: flex;
         }
 
         iframe {
@@ -47,18 +96,187 @@
             height: 100%;
             border: none;
         }
+
+        /* Stream Center Tab Styling */
+        .stream-center-panel {
+            background: var(--bg-color);
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+            width: 100%;
+        }
+
+        .stream-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .stream-card h2 {
+            margin: 0;
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input[type="text"] { flex-grow: 1; }
+        input[type="number"] { width: 80px; }
+
+        .server-dropdown {
+            background: #1a1d28;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            width: 100%;
+        }
+
+        .action-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover { background: #2563eb; }
     </style>
 </head>
 <body>
 
     <div class="top-bar">
-        <div><span>VERGA Portal</span> — Powered by Stremio Web</div>
-        <div>Catalog & Addons Active</div>
+        <div class="brand"><span>VERGA</span> Streaming Portal</div>
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchView('stremio')">Stremio Catalog</button>
+            <button class="tab-btn" onclick="switchView('streams')">⚡ Stream Center</button>
+        </div>
     </div>
 
-    <div class="stremio-container">
-        <iframe src="https://web.strem.io/" allowfullscreen></iframe>
+    <div class="view-container">
+        <!-- View 1: Official Stremio Web UI for browsing & addons -->
+        <div id="stremioView" class="view active">
+            <iframe src="https://web.strem.io/" allowfullscreen></iframe>
+        </div>
+
+        <!-- View 2: Dedicated Multi-Server Stream Launcher (Guaranteed playback without browser freeze) -->
+        <div id="streamsView" class="view">
+            <div class="stream-center-panel">
+                <div class="stream-card">
+                    <h2>Multi-Server Stream Player</h2>
+                    <p style="color: var(--text-muted); font-size: 13px; line-height: 1.4;">
+                        If Stremio Web cannot play a torrent directly in your browser, select your preferred streaming server below, enter an IMDb ID (or copy one from the Stremio tab), and click launch for instant, un-hijacked playback.
+                    </p>
+
+                    <div>
+                        <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Select Streaming Server</label>
+                        <select id="serverSelect" class="server-dropdown">
+                            <option value="0">Main 1 (VidSrc.cc)</option>
+                            <option value="1">Main 2 (VidSrc.to)</option>
+                            <option value="2">Main 3 (VidSrc.su)</option>
+                            <option value="3">Main 4 (VidLink Pro)</option>
+                            <option value="4">Main 5 (MultiEmbed)</option>
+                            <option value="5">Main 6 (AutoEmbed)</option>
+                            <option value="6">Main 7 (MoviesAPI)</option>
+                            <option value="7">Main 8 (VidZee)</option>
+                            <option value="8">Main 9 (2Embed)</option>
+                            <option value="9">Main 10 (VidFast)</option>
+                            <option value="10">Multi-language (VidSrc Me)</option>
+                            <option value="11">Premium embeds (VidSrc VIP)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">IMDb ID / Media Reference</label>
+                        <div class="input-group">
+                            <input type="text" id="mediaId" placeholder="e.g. tt1375666" value="tt1375666">
+                            <input type="number" id="seasonNum" placeholder="Season" min="1">
+                            <input type="number" id="episodeNum" placeholder="Ep" min="1">
+                        </div>
+                    </div>
+
+                    <button class="action-btn" onclick="launchStream()">▶ Launch Safe Stream</button>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <script>
+        const servers = [
+            (id, s, e) => s ? `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}` : `https://vidsrc.cc/v2/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidsrc.to/embed/tv/${id}/${s}/${e}` : `https://vidsrc.to/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidsrc.su/embed/tv/${id}/${s}/${e}` : `https://vidsrc.su/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidlink.pro/tv/${id}/${s}/${e}` : `https://vidlink.pro/movie/${id}`,
+            (id, s, e) => `https://multiembed.mov/?video_id=${id}${s ? `&s=${s}&e=${e}` : ''}`,
+            (id, s, e) => `https://player.autoembed.cc/embed/movie/${id}`,
+            (id, s, e) => s ? `https://moviesapi.club/tv/${id}-${s}-${e}` : `https://moviesapi.club/movie/${id}`,
+            (id, s, e) => `https://vidzee.za.com/embed/${id}`,
+            (id, s, e) => s ? `https://www.2embed.stream/embed/tv/${id}/${s}/${e}` : `https://www.2embed.stream/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidfast.pro/embed/tv/${id}/${s}/${e}` : `https://vidfast.pro/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidsrc.me/embed/tv?imdb=${id}&s=${s}&e=${e}` : `https://vidsrc.me/embed/movie?imdb=${id}`,
+            (id, s, e) => s ? `https://vidsrc.vip/embed/tv/${id}/${s}/${e}` : `https://vidsrc.vip/embed/movie/${id}`
+        ];
+
+        function switchView(viewName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+
+            if (viewName === 'stremio') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('stremioView').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('streamsView').classList.add('active');
+            }
+        }
+
+        function launchStream() {
+            const serverIndex = parseInt(document.getElementById('serverSelect').value);
+            const id = document.getElementById('mediaId').value.trim();
+            const s = document.getElementById('seasonNum').value;
+            const e = document.getElementById('episodeNum').value;
+
+            if (!id) {
+                alert("Please enter a valid IMDb ID!");
+                return;
+            }
+
+            const targetUrl = servers[serverIndex](id, s, e);
+            
+            // Secure isolated tab launch preventing frame hijacking & sandbox locks
+            const win = window.open(targetUrl, '_blank', 'noopener,noreferrer');
+            if (win) win.opener = null;
+        }
+    </script>
 </body>
 </html>
