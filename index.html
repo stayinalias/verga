@@ -114,6 +114,7 @@
             background: #000;
             width: 100%;
             height: calc(100vh - 60px);
+            position: relative;
         }
 
         iframe {
@@ -150,8 +151,8 @@
     </div>
 
     <div class="player-wrapper">
-        <!-- The sandbox attribute below permanently locks the iframe so it cannot hijack your website -->
-        <iframe id="streamFrame" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+        <!-- Secure sandbox restricts the frame from hijacking your browser or locking your page -->
+        <iframe id="streamFrame" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock"></iframe>
     </div>
 
     <script>
