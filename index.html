@@ -3,209 +3,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Server Streaming Platform</title>
+    <title>Stremio Web Dashboard - Multi-Server</title>
     <style>
         :root {
-            --bg-color: #0a0b0e;
-            --panel-bg: #12141c;
-            --dropdown-bg: #1a1d28;
-            --border-color: #2a2e3d;
+            --bg-dark: #0f1117;
+            --bg-card: #181a20;
+            --bg-header: #13151b;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
             --text-main: #f3f4f6;
             --text-muted: #9ca3af;
-            --accent: #3b82f6;
+            --border: #2a2d3d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
+            background-color: var(--bg-dark);
             color: var(--text-main);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
         }
 
-        .top-bar {
-            height: 70px;
-            background: var(--panel-bg);
-            border-bottom: 1px solid var(--border-color);
+        header {
+            background: var(--bg-header);
+            border-bottom: 1px solid var(--border);
+            padding: 15px 30px;
             display: flex;
             align-items: center;
-            padding: 0 25px;
-            gap: 15px;
-            flex-shrink: 0;
-            box-sizing: border-box;
-            z-index: 999;
+            justify-content: space-between;
+            gap: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        input {
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
+        .brand {
+            font-size: 20px;
+            font-weight: 700;
             color: #fff;
-            padding: 9px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand span {
+            color: var(--accent);
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        input, select, button {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 12px;
             border-radius: 6px;
             font-size: 14px;
             outline: none;
         }
 
         input[type="text"] {
-            width: 240px;
+            width: 220px;
         }
 
-        input[type="number"] {
-            width: 75px;
-        }
-
-        .server-select-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-
-        select.server-dropdown {
-            background: var(--dropdown-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 10px 35px 10px 14px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
+        select {
             cursor: pointer;
-            outline: none;
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
+            background-color: #1e212b;
         }
 
-        select.server-dropdown:hover {
-            border-color: var(--accent);
-        }
-
-        .server-select-wrapper::after {
-            content: "▼";
-            font-size: 9px;
-            color: var(--text-muted);
-            position: absolute;
-            right: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            pointer-events: none;
-        }
-
-        button.load-btn {
+        button.btn-primary {
             background: var(--accent);
-            color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
+            color: white;
             font-weight: 600;
-            font-size: 14px;
+            cursor: pointer;
             transition: background 0.2s;
         }
 
-        button.load-btn:hover {
-            background: #2563eb;
+        button.btn-primary:hover {
+            background: var(--accent-hover);
         }
 
-        .dashboard-content {
+        main {
+            padding: 30px;
             flex-grow: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
-            text-align: center;
+            justify-content: space-between;
+        }
+
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
         }
 
         .card {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            padding: 40px;
-            border-radius: 12px;
-            max-width: 500px;
-            width: 100%;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
         }
 
-        h2 {
-            margin-top: 0;
-            font-size: 22px;
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            border-color: var(--accent);
+        }
+
+        .card img {
+            width: 100%;
+            height: 260px;
+            object-fit: cover;
+            background: #252836;
+        }
+
+        .card-info {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Modal styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 800px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
             color: #fff;
         }
 
-        p {
-            color: var(--text-muted);
-            font-size: 14px;
-            line-height: 1.5;
+        .modal-body {
+            padding: 20px;
+            display: flex;
+            gap: 20px;
         }
-    </style>
-</head>
-<body>
 
-    <div class="top-bar">
-        <div class="server-select-wrapper">
-            <select id="serverSelect" class="server-dropdown">
-                <option value="0">Main 1 (VidSrc.cc)</option>
-                <option value="1">Main 2 (VidSrc.to)</option>
-                <option value="2">Main 3 (VidSrc.su)</option>
-                <option value="3">Main 4 (VidLink)</option>
-                <option value="4">Main 5 (MultiEmbed)</option>
-                <option value="5">Main 6 (AutoEmbed)</option>
-                <option value="6">Main 7 (MoviesAPI)</option>
-                <option value="7">Main 8 (VidZee)</option>
-                <option value="8">Main 9 (2Embed)</option>
-                <option value="9">Main 10 (VidFast)</option>
-                <option value="10">Multi-language (VidSrc Me)</option>
-                <option value="11">Premium embeds (VidSrc VIP)</option>
-            </select>
-        </div>
+        .modal-poster {
+            width: 200px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
 
-        <input type="text" id="mediaId" placeholder="IMDb ID (e.g. tt1375666)" value="tt1375666">
-        <input type="number" id="seasonNum" placeholder="Season">
-        <input type="number" id="episodeNum" placeholder="Ep">
-        <button class="load-btn" onclick="launchStream()">Open Stream</button>
-    </div>
+        .modal-details {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
 
-    <div class="dashboard-content">
-        <div class="card">
-            <h2>Multi-Server Stream Control</h2>
-            <p>Your control panel is safe and unlocked. Select any server from the dropdown, enter an IMDb ID (and Season/Episode if it's a TV series), and click <strong>Open Stream</strong> to launch the player instantly without sandbox errors or screen freezes!</p>
-        </div>
-    </div>
+        .trailer-container {
+            width: 100%;
+            height: 250px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+            margin-top: 10px;
+        }
 
-    <script>
-        const servers = [
-            (id, s, e) => s ? `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}` : `https://vidsrc.cc/v2/embed/movie/${id}`,
-            (id, s, e) => s ? `https://vidsrc.to/embed/tv/${id}/${s}/${e}` : `https://vidsrc.to/embed/movie/${id}`,
-            (id, s, e) => s ? `https://vidsrc.su/embed/tv/${id}/${s}/${e}` : `https://vidsrc.su/embed/movie/${id}`,
-            (id, s, e) => s ? `https://vidlink.pro/tv/${id}/${s}/${e}` : `https://vidlink.pro/movie/${id}`,
-            (id, s, e) => `https://multiembed.mov/?video_id=${id}${s ? `&s=${s}&e=${e}` : ''}`,
-            (id, s, e) => `https://player.autoembed.cc/embed/movie/${id}`,
-            (id, s, e) => s ? `https://moviesapi.club/tv/${id}-${s}-${e}` : `https://moviesapi.club/movie/${id}`,
-            (id, s, e) => `https://vidzee.za.com/embed/${id}`,
-            (id, s, e) => s ? `https://www.2embed.stream/embed/tv/${id}/${s}/${e}` : `https://www.2embed.stream/embed/movie/${id}`,
-            (id, s, e) => s ? `https://vidfast.pro/embed/tv/${id}/${s}/${e}` : `https://vidfast.pro/embed/movie/${id}`,
-            (id, s, e) => s ? `https://vidsrc.me/embed/tv?imdb=${id}&s=${s}&e=${e}` : `https://vidsrc.me/embed/movie?imdb=${id}`,
-            (id, s, e) => s ? `https://vidsrc.vip/embed/tv/${id}/${s}/${e}` : `https://vidsrc.vip/embed/movie/${id}`
-        ];
+        .trailer-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
 
-        function launchStream() {
-            const selectElement = document.getElementById('serverSelect');
-            const serverIndex = parseInt(selectElement.value);
-            const id = document.getElementById('mediaId').value.trim();
-            const s = document.getElementById('seasonNum').value;
-            const e = document.getElementById('episodeNum').value;
-
-            if (!id) {
-                alert("Please enter a valid IMDb ID!");
-                return;
+        @media (max-width: 600px) {
+            .modal-body {
+                flex-direction: column;
             }
-
-            const targetUrl = servers[serverIndex](id, s, e);
-            window.open(targetUrl, '_blank');
-        }
-    </script>
-</body>
-</html>
