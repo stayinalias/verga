@@ -1,0 +1,11 @@
+{
+  "name": "remux-download-service",
+  "version": "1.0.0",
+  "description": "WebTorrent to fluent-ffmpeg direct MP4 remux tunnel",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.18.2",
+    "fluent-ffmpeg": "^2.1.2",
+    "webtorrent": "^2.2.0"
+  }
+}
