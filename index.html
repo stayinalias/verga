@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Stream Server Selector</title>
+    <title>Multi-Server Streaming Platform</title>
     <style>
         :root {
             --bg-color: #0a0b0e;
             --panel-bg: #12141c;
-            --accent: #ffffff;
-            --border-color: #222634;
+            --dropdown-bg: #1a1d28;
+            --border-color: #2a2e3d;
             --text-main: #f3f4f6;
             --text-muted: #9ca3af;
+            --accent: #3b82f6;
         }
 
         body {
@@ -27,12 +28,13 @@
         }
 
         .top-bar {
-            padding: 15px 25px;
+            padding: 12px 20px;
             background: var(--panel-bg);
             border-bottom: 1px solid var(--border-color);
             display: flex;
-            gap: 15px;
+            gap: 10px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         input {
@@ -47,81 +49,61 @@
 
         input[type="text"] {
             flex: 1;
-            max-width: 350px;
+            min-width: 220px;
+            max-width: 320px;
+        }
+
+        /* Dropdown selector matching your reference image */
+        .server-select-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        select.server-dropdown {
+            background: var(--dropdown-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 9px 35px 9px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            transition: border-color 0.2s;
+        }
+
+        select.server-dropdown:hover {
+            border-color: var(--accent);
+        }
+
+        /* Custom dropdown arrow icon */
+        .server-select-wrapper::after {
+            content: "▼";
+            font-size: 10px;
+            color: var(--text-muted);
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
         }
 
         button.load-btn {
-            background: #2563eb;
+            background: var(--accent);
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 9px 18px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
+            transition: background 0.2s;
         }
 
         button.load-btn:hover {
-            background: #1d4ed8;
-        }
-
-        .main-container {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        .selector-panel {
-            background: #0e1017;
-            padding: 15px 25px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .section-title {
-            font-size: 11px;
-            letter-spacing: 1.5px;
-            color: var(--text-muted);
-            font-weight: 700;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-        }
-
-        .servers-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-            gap: 10px;
-            max-height: 140px;
-            overflow-y: auto;
-            padding-right: 5px;
-        }
-
-        .server-btn {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
-            padding: 12px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .server-btn:hover {
-            border-color: #4b5563;
-            color: #fff;
-        }
-
-        .server-btn.active {
-            background: #ffffff;
-            color: #000000;
-            border-color: #ffffff;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+            background: #2563eb;
         }
 
         .player-wrapper {
@@ -140,74 +122,66 @@
 <body>
 
     <div class="top-bar">
-        <input type="text" id="mediaId" placeholder="Enter IMDb ID (e.g. tt1375666) or TMDB ID" value="tt1375666">
-        <input type="number" id="seasonNum" placeholder="Season (TV)" style="width: 90px; display: none;">
-        <input type="number" id="episodeNum" placeholder="Ep (TV)" style="width: 70px; display: none;">
+        <!-- Dropdown Server Selector Menu -->
+        <div class="server-select-wrapper">
+            <select id="serverSelect" class="server-dropdown" onchange="updateStream()">
+                <option value="0">Main 1 (VidSrc.cc)</option>
+                <option value="1">Main 2 (VidSrc.to)</option>
+                <option value="2">Main 3 (VidSrc.su)</option>
+                <option value="3">Main 4 (VidLink)</option>
+                <option value="4">Main 5 (MultiEmbed)</option>
+                <option value="5">Main 6 (AutoEmbed)</option>
+                <option value="6">Main 7 (MoviesAPI)</option>
+                <option value="7">Main 8 (VidZee)</option>
+                <option value="8">Main 9 (2Embed)</option>
+                <option value="9">Main 10 (VidFast)</option>
+                <option value="10">Multi-language (VidSrc Me)</option>
+                <option value="11">Premium embeds (VidSrc VIP)</option>
+            </select>
+        </div>
+
+        <input type="text" id="mediaId" placeholder="IMDb ID (e.g. tt1375666)" value="tt1375666">
+        <input type="number" id="seasonNum" placeholder="Season" style="width: 80px; display: none;" onchange="updateStream()">
+        <input type="number" id="episodeNum" placeholder="Ep" style="width: 65px; display: none;" onchange="updateStream()">
         <button class="load-btn" onclick="updateStream()">Load Stream</button>
     </div>
 
-    <div class="main-container">
-        <div class="selector-panel">
-            <div class="section-title">Select Source Server</div>
-            <div class="servers-grid" id="serverGrid"></div>
-        </div>
-
-        <div class="player-wrapper">
-            <iframe id="streamFrame" allowfullscreen></iframe>
-        </div>
+    <div class="player-wrapper">
+        <iframe id="streamFrame" allowfullscreen></iframe>
     </div>
 
     <script>
-        // Define your multi-stream providers matching your layout design
+        // 12+ Working streaming server endpoints matching your drop-down options
         const servers = [
-            { name: "CINEZO (NO ADS)", url: (id, s, e) => s ? `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}` : `https://vidsrc.cc/v2/embed/movie/${id}` },
-            { name: "CINESRC (NO ADS)", url: (id, s, e) => s ? `https://vidsrc.to/embed/tv/${id}/${s}/${e}` : `https://vidsrc.to/embed/movie/${id}` },
-            { name: "PEESTREAM (NO ADS)", url: (id, s, e) => `https://multiembed.mov/?video_id=${id}${s ? `&s=${s}&e=${e}` : ''}` },
-            { name: "FLAXMOVIES (NO ADS)", url: (id, s, e) => `https://player.autoembed.cc/embed/movie/${id}` },
-            { name: "MOVIESAPI (NO ADS)", url: (id, s, e) => s ? `https://moviesapi.club/tv/${id}-${s}-${e}` : `https://moviesapi.club/movie/${id}` },
-            { name: "VIDLINK", url: (id, s, e) => s ? `https://vidlink.pro/tv/${id}/${s}/${e}` : `https://vidlink.pro/movie/${id}` },
-            { name: "VIDSRC EMBED", url: (id, s, e) => s ? `https://vidsrc.me/embed/tv?imdb=${id}&s=${s}&e=${e}` : `https://vidsrc.me/embed/movie?imdb=${id}` },
-            { name: "VIDEASY", url: (id, s, e) => `https://player.videasy.net/movie/${id}` },
-            { name: "111MOVIES", url: (id, s, e) => s ? `https://111movies.com/tv/${id}/${s}/${e}` : `https://111movies.com/movie/${id}` },
-            { name: "VIDZEE", url: (id, s, e) => `https://vidzee.za.com/embed/${id}` },
-            { name: "2EMBED", url: (id, s, e) => s ? `https://www.2embed.stream/embed/tv/${id}/${s}/${e}` : `https://www.2embed.stream/embed/movie/${id}` },
-            { name: "VIDSRC.SU", url: (id, s, e) => s ? `https://vidsrc.su/embed/tv/${id}/${s}/${e}` : `https://vidsrc.su/embed/movie/${id}` }
+            (id, s, e) => s ? `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}` : `https://vidsrc.cc/v2/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidsrc.to/embed/tv/${id}/${s}/${e}` : `https://vidsrc.to/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidsrc.su/embed/tv/${id}/${s}/${e}` : `https://vidsrc.su/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidlink.pro/tv/${id}/${s}/${e}` : `https://vidlink.pro/movie/${id}`,
+            (id, s, e) => `https://multiembed.mov/?video_id=${id}${s ? `&s=${s}&e=${e}` : ''}`,
+            (id, s, e) => `https://player.autoembed.cc/embed/movie/${id}`,
+            (id, s, e) => s ? `https://moviesapi.club/tv/${id}-${s}-${e}` : `https://moviesapi.club/movie/${id}`,
+            (id, s, e) => `https://vidzee.za.com/embed/${id}`,
+            (id, s, e) => s ? `https://www.2embed.stream/embed/tv/${id}/${s}/${e}` : `https://www.2embed.stream/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidfast.pro/embed/tv/${id}/${s}/${e}` : `https://vidfast.pro/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidsrc.me/embed/tv?imdb=${id}&s=${s}&e=${e}` : `https://vidsrc.me/embed/movie?imdb=${id}`,
+            (id, s, e) => s ? `https://vidsrc.vip/embed/tv/${id}/${s}/${e}` : `https://vidsrc.vip/embed/movie/${id}`
         ];
 
-        let activeServerIndex = 0;
-
-        function initServers() {
-            const grid = document.getElementById('serverGrid');
-            grid.innerHTML = '';
-            servers.forEach((srv, index) => {
-                const btn = document.createElement('button');
-                btn.className = `server-btn ${index === activeServerIndex ? 'active' : ''}`;
-                btn.innerText = srv.name;
-                btn.onclick = () => {
-                    activeServerIndex = index;
-                    document.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    updateStream();
-                };
-                grid.appendChild(btn);
-            });
-        }
-
         function updateStream() {
+            const selectElement = document.getElementById('serverSelect');
+            const serverIndex = parseInt(selectElement.value);
             const id = document.getElementById('mediaId').value.trim();
             const s = document.getElementById('seasonNum').value;
             const e = document.getElementById('episodeNum').value;
-            
+
             if (!id) return;
 
-            // If ID looks like a TV show pattern or season is specified, show inputs
-            const selectedServer = servers[activeServerIndex];
-            const targetUrl = selectedServer.url(id, s, e);
+            // Generate source URL based on the selected dropdown index
+            const targetUrl = servers[serverIndex](id, s, e);
             document.getElementById('streamFrame').src = targetUrl;
         }
 
-        // Initialize on load
-        initServers();
+        // Auto load default stream on startup
         updateStream();
     </script>
 </body>
