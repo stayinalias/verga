@@ -296,4 +296,156 @@
                 <option value="1">Server 2 (VidSrc.to)</option>
                 <option value="2">Server 3 (VidSrc.su)</option>
                 <option value="3">Server 4 (VidLink Pro)</option>
-                <option value="4">Server 5 (Multi
+                <option value="4">Server 5 (MultiEmbed)</option>
+                <option value="5">Server 6 (AutoEmbed)</option>
+                <option value="6">Server 7 (MoviesAPI)</option>
+                <option value="7">Server 8 (2Embed)</option>
+                <option value="8">Server 9 (VidFast)</option>
+                <option value="9">Server 10 (VidSrc VIP)</option>
+            </select>
+
+            <input type="text" id="imdbIdInput" class="id-input" placeholder="IMDb ID" value="tt22084616">
+            <input type="number" id="seasonInput" placeholder="S" min="1">
+            <input type="number" id="episodeInput" placeholder="Ep" min="1">
+
+            <button class="btn-play" onclick="playInAppStream()">▶ Stream</button>
+            <button class="btn-play" style="background:#282d3c;" onclick="loadInStremio()">🔍 Load Stremio</button>
+        </div>
+    </div>
+
+    <!-- Main View -->
+    <div class="portal-container">
+        <iframe id="stremioFrame" class="stremio-frame" src="https://web.strem.io/#/" allowfullscreen></iframe>
+
+        <!-- In-App Stream Player Overlay -->
+        <div class="player-overlay" id="playerOverlay">
+            <div class="player-bar">
+                <span id="playerStatus" style="font-size: 13px; font-weight: 600;">Active Stream Player</span>
+                <button class="close-player-btn" onclick="closeStreamPlayer()">✕ Close Player</button>
+            </div>
+            <iframe id="streamPlayerFrame" class="stream-frame" allow="fullscreen; autoplay; encrypted-media"></iframe>
+        </div>
+    </div>
+
+    <script>
+        const streamProviders = [
+            (id, s, e) => s ? `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}` : `https://vidsrc.cc/v2/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidsrc.to/embed/tv/${id}/${s}/${e}` : `https://vidsrc.to/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidsrc.su/embed/tv/${id}/${s}/${e}` : `https://vidsrc.su/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidlink.pro/tv/${id}/${s}/${e}` : `https://vidlink.pro/movie/${id}`,
+            (id, s, e) => `https://multiembed.mov/?video_id=${id}${s ? `&s=${s}&e=${e}` : ''}`,
+            (id, s, e) => `https://player.autoembed.cc/embed/movie/${id}`,
+            (id, s, e) => s ? `https://moviesapi.club/tv/${id}-${s}-${e}` : `https://moviesapi.club/movie/${id}`,
+            (id, s, e) => s ? `https://www.2embed.stream/embed/tv/${id}/${s}/${e}` : `https://www.2embed.stream/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidfast.pro/embed/tv/${id}/${s}/${e}` : `https://vidfast.pro/embed/movie/${id}`,
+            (id, s, e) => s ? `https://vidsrc.vip/embed/tv/${id}/${s}/${e}` : `https://vidsrc.vip/embed/movie/${id}`
+        ];
+
+        let searchTimer = null;
+
+        function debounceSearch() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(performMovieSearch, 300);
+        }
+
+        // Fetches movie titles and IMDb IDs dynamically via Stremio/Cinemeta catalog API
+        async function performMovieSearch() {
+            const query = document.getElementById('titleSearchInput').value.trim();
+            const resultsBox = document.getElementById('searchResults');
+
+            if (!query) {
+                resultsBox.style.display = 'none';
+                return;
+            }
+
+            try {
+                const res = await fetch(`https://v3-cinemeta.strem.io/catalog/movie/top/search=${encodeURIComponent(query)}.json`);
+                const data = await res.json();
+
+                if (!data.metas || data.metas.length === 0) {
+                    resultsBox.innerHTML = `<div style="padding:12px; font-size:12px; color:var(--text-muted);">No matching movies found</div>`;
+                    resultsBox.style.display = 'block';
+                    return;
+                }
+
+                resultsBox.innerHTML = data.metas.slice(0, 6).map(m => `
+                    <div class="result-item" onclick="selectMovie('${m.id}', '${m.name.replace(/'/g, "\\'")}')">
+                        <div class="result-info">
+                            <img src="${m.poster || ''}" alt="">
+                            <div class="result-details">
+                                <span class="result-title">${m.name}</span>
+                                <span class="result-meta">${m.releaseInfo || m.year || 'Movie'}</span>
+                            </div>
+                        </div>
+                        <div class="imdb-tag-container" onclick="event.stopPropagation()">
+                            <span class="imdb-tag">${m.id}</span>
+                            <button class="copy-btn" title="Copy IMDb ID" onclick="copyToClipboard('${m.id}', this)">📋</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                resultsBox.style.display = 'block';
+            } catch (err) {
+                console.error("Search fetch error:", err);
+            }
+        }
+
+        function copyToClipboard(imdbId, btnElement) {
+            navigator.clipboard.writeText(imdbId).then(() => {
+                const originalText = btnElement.innerText;
+                btnElement.innerText = "✓";
+                setTimeout(() => { btnElement.innerText = originalText; }, 1200);
+            });
+        }
+
+        function selectMovie(imdbId, title) {
+            document.getElementById('imdbIdInput').value = imdbId;
+            document.getElementById('titleSearchInput').value = title;
+            document.getElementById('searchResults').style.display = 'none';
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-wrapper')) {
+                document.getElementById('searchResults').style.display = 'none';
+            }
+        });
+
+        function loadInStremio() {
+            const rawId = document.getElementById('imdbIdInput').value.trim();
+            if (!rawId) return alert("Please select or enter an IMDb ID");
+
+            const formattedId = rawId.startsWith('tt') ? rawId : `tt${rawId}`;
+            const season = document.getElementById('seasonInput').value;
+            const episode = document.getElementById('episodeInput').value;
+
+            let stremioUrl = (season && episode) 
+                ? `https://web.strem.io/#/detail/series/${formattedId}/${formattedId}%3A${season}%3A${episode}`
+                : `https://web.strem.io/#/detail/movie/${formattedId}/${formattedId}`;
+
+            document.getElementById('stremioFrame').src = stremioUrl;
+        }
+
+        function playInAppStream() {
+            const rawId = document.getElementById('imdbIdInput').value.trim();
+            if (!rawId) return alert("Please select or enter an IMDb ID");
+
+            const formattedId = rawId.startsWith('tt') ? rawId : `tt${rawId}`;
+            const serverIdx = parseInt(document.getElementById('serverSelect').value);
+            const season = document.getElementById('seasonInput').value;
+            const episode = document.getElementById('episodeInput').value;
+
+            const targetUrl = streamProviders[serverIdx](formattedId, season, episode);
+
+            document.getElementById('playerStatus').innerText = `Streaming ${formattedId} on Server ${serverIdx + 1}`;
+            document.getElementById('streamPlayerFrame').src = targetUrl;
+            document.getElementById('playerOverlay').style.display = 'flex';
+        }
+
+        function closeStreamPlayer() {
+            document.getElementById('streamPlayerFrame').src = 'about:blank';
+            document.getElementById('playerOverlay').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
