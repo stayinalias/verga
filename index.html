@@ -75,7 +75,7 @@
         }
 
         input[type="text"] {
-            width: 220px;
+            width: 200px;
         }
 
         select {
@@ -108,9 +108,6 @@
             font-size: 18px;
             font-weight: 600;
             margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
         }
 
         .movie-grid {
@@ -166,7 +163,6 @@
             justify-content: space-between;
         }
 
-        /* Modal styling */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -324,9 +320,7 @@
             (id, s, e) => s ? `https://vidsrc.su/embed/tv/${id}/${s}/${e}` : `https://vidsrc.su/embed/movie/${id}`,
             (id, s, e) => s ? `https://vidlink.pro/tv/${id}/${s}/${e}` : `https://vidlink.pro/movie/${id}`,
             (id, s, e) => `https://multiembed.mov/?video_id=${id}${s ? `&s=${s}&e=${e}` : ''}`,
-            (id, s, e) => `https://player.autoembed.cc/embed/movie/${id}`,
-            (id, s, e) => s ? `https://moviesapi.club/tv/${id}-${s}-${e}` : `https://moviesapi.club/movie/${id}`,
-            (id, s, e) => `https://vidzee.za.com/embed/${id}`,
+            (id, s, e) => `https://player.autoembed.cc/embed/movie/${id}`, (id, s, e) => s ? `https://moviesapi.club/tv/${id}-${s}-${e}` : `https://moviesapi.club/movie/${id}`, (id, s, e) => `https://vidzee.za.com/embed/${id}`,
             (id, s, e) => s ? `https://www.2embed.stream/embed/tv/${id}/${s}/${e}` : `https://www.2embed.stream/embed/movie/${id}`,
             (id, s, e) => s ? `https://vidfast.pro/embed/tv/${id}/${s}/${e}` : `https://vidfast.pro/embed/movie/${id}`,
             (id, s, e) => s ? `https://vidsrc.me/embed/tv?imdb=${id}&s=${s}&e=${e}` : `https://vidsrc.me/embed/movie?imdb=${id}`,
@@ -338,59 +332,4 @@
         function renderCatalog() {
             const grid = document.getElementById('catalogGrid');
             grid.innerHTML = catalog.map(item => `
-                <div class="card" onclick="openModal('${item.id}')">
-                    <img src="${item.poster}" alt="${item.title}">
-                    <div class="card-info">
-                        <div class="card-title">${item.title}</div>
-                        <div class="card-meta">
-                            <span>${item.year}</span>
-                            <span>${item.type}</span>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function openModal(id) {
-            activeMedia = catalog.find(m => m.id === id);
-            if (!activeMedia) return;
-
-            document.getElementById('modalTitle').innerText = activeMedia.title + ` (${activeMedia.year})`;
-            document.getElementById('modalPoster').src = activeMedia.poster;
-            document.getElementById('modalOverview').innerText = activeMedia.desc;
-            
-            // Embed official YouTube trailer
-            document.getElementById('trailerBox').innerHTML = `
-                <iframe src="https://www.youtube-nocookie.com/embed/${activeMedia.youtube}" allowfullscreen></iframe>
-            `;
-
-            document.getElementById('mediaModal').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('mediaModal').style.display = 'none';
-            document.getElementById('trailerBox').innerHTML = '';
-        }
-
-        function playSelectedStream() {
-            if (!activeMedia) return;
-            const serverIdx = parseInt(document.getElementById('serverSelect').value);
-            const targetUrl = servers[serverIdx](activeMedia.id);
-            window.open(targetUrl, '_blank');
-        }
-
-        function launchManual() {
-            const id = document.getElementById('manualId').value.trim();
-            if (!id) {
-                alert("Please enter a valid IMDb ID");
-                return;
-            }
-            const serverIdx = parseInt(document.getElementById('serverSelect').value);
-            const targetUrl = servers[serverIdx](id);
-            window.open(targetUrl, '_blank');
-        }
-
-        renderCatalog();
-    </script>
-</body>
-</html>
+                <div class="card" onclick
