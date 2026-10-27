@@ -3,16 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Streaming Platform</title>
+    <title>Multi-Stream Server Selector</title>
     <style>
-        body, html {
+        :root {
+            --bg-color: #0a0b0e;
+            --panel-bg: #12141c;
+            --accent: #ffffff;
+            --border-color: #222634;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        body {
             margin: 0;
             padding: 0;
-            width: 100%;
-            height: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
             overflow: hidden;
-            background-color: #0a0b0e;
         }
+
+        .top-bar {
+            padding: 15px 25px;
+            background: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        input {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            max-width: 350px;
+        }
+
+        button.load-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button.load-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .selector-panel {
+            background: #0e1017;
+            padding: 15px 25px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-title {
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .servers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 10px;
+            max-height: 140px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .server-btn {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 12px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .server-btn:hover {
+            border-color: #4b5563;
+            color: #fff;
+        }
+
+        .server-btn.active {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .player-wrapper {
+            flex: 1;
+            background: #000;
+            position: relative;
+        }
+
         iframe {
             width: 100%;
             height: 100%;
@@ -21,6 +138,77 @@
     </style>
 </head>
 <body>
-    <iframe src="https://web.strem.io/"></iframe>
+
+    <div class="top-bar">
+        <input type="text" id="mediaId" placeholder="Enter IMDb ID (e.g. tt1375666) or TMDB ID" value="tt1375666">
+        <input type="number" id="seasonNum" placeholder="Season (TV)" style="width: 90px; display: none;">
+        <input type="number" id="episodeNum" placeholder="Ep (TV)" style="width: 70px; display: none;">
+        <button class="load-btn" onclick="updateStream()">Load Stream</button>
+    </div>
+
+    <div class="main-container">
+        <div class="selector-panel">
+            <div class="section-title">Select Source Server</div>
+            <div class="servers-grid" id="serverGrid"></div>
+        </div>
+
+        <div class="player-wrapper">
+            <iframe id="streamFrame" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <script>
+        // Define your multi-stream providers matching your layout design
+        const servers = [
+            { name: "CINEZO (NO ADS)", url: (id, s, e) => s ? `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}` : `https://vidsrc.cc/v2/embed/movie/${id}` },
+            { name: "CINESRC (NO ADS)", url: (id, s, e) => s ? `https://vidsrc.to/embed/tv/${id}/${s}/${e}` : `https://vidsrc.to/embed/movie/${id}` },
+            { name: "PEESTREAM (NO ADS)", url: (id, s, e) => `https://multiembed.mov/?video_id=${id}${s ? `&s=${s}&e=${e}` : ''}` },
+            { name: "FLAXMOVIES (NO ADS)", url: (id, s, e) => `https://player.autoembed.cc/embed/movie/${id}` },
+            { name: "MOVIESAPI (NO ADS)", url: (id, s, e) => s ? `https://moviesapi.club/tv/${id}-${s}-${e}` : `https://moviesapi.club/movie/${id}` },
+            { name: "VIDLINK", url: (id, s, e) => s ? `https://vidlink.pro/tv/${id}/${s}/${e}` : `https://vidlink.pro/movie/${id}` },
+            { name: "VIDSRC EMBED", url: (id, s, e) => s ? `https://vidsrc.me/embed/tv?imdb=${id}&s=${s}&e=${e}` : `https://vidsrc.me/embed/movie?imdb=${id}` },
+            { name: "VIDEASY", url: (id, s, e) => `https://player.videasy.net/movie/${id}` },
+            { name: "111MOVIES", url: (id, s, e) => s ? `https://111movies.com/tv/${id}/${s}/${e}` : `https://111movies.com/movie/${id}` },
+            { name: "VIDZEE", url: (id, s, e) => `https://vidzee.za.com/embed/${id}` },
+            { name: "2EMBED", url: (id, s, e) => s ? `https://www.2embed.stream/embed/tv/${id}/${s}/${e}` : `https://www.2embed.stream/embed/movie/${id}` },
+            { name: "VIDSRC.SU", url: (id, s, e) => s ? `https://vidsrc.su/embed/tv/${id}/${s}/${e}` : `https://vidsrc.su/embed/movie/${id}` }
+        ];
+
+        let activeServerIndex = 0;
+
+        function initServers() {
+            const grid = document.getElementById('serverGrid');
+            grid.innerHTML = '';
+            servers.forEach((srv, index) => {
+                const btn = document.createElement('button');
+                btn.className = `server-btn ${index === activeServerIndex ? 'active' : ''}`;
+                btn.innerText = srv.name;
+                btn.onclick = () => {
+                    activeServerIndex = index;
+                    document.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    updateStream();
+                };
+                grid.appendChild(btn);
+            });
+        }
+
+        function updateStream() {
+            const id = document.getElementById('mediaId').value.trim();
+            const s = document.getElementById('seasonNum').value;
+            const e = document.getElementById('episodeNum').value;
+            
+            if (!id) return;
+
+            // If ID looks like a TV show pattern or season is specified, show inputs
+            const selectedServer = servers[activeServerIndex];
+            const targetUrl = selectedServer.url(id, s, e);
+            document.getElementById('streamFrame').src = targetUrl;
+        }
+
+        // Initialize on load
+        initServers();
+        updateStream();
+    </script>
 </body>
 </html>
