@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stremio Web Dashboard - Multi-Server</title>
+    <title>Stremio Addon & Streaming Portal</title>
     <style>
         :root {
             --bg-dark: #0f1117;
@@ -16,20 +16,8 @@
             --border: #2a2d3d;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg-dark); color: var(--text-main); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 
         header {
             background: var(--bg-header);
@@ -38,298 +26,159 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 20px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            gap: 15px;
+            position: sticky; top: 0; z-index: 100;
         }
 
-        .brand {
-            font-size: 20px;
-            font-weight: 700;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .brand { font-size: 20px; font-weight: 700; color: #fff; }
+        .brand span { color: var(--accent); }
 
-        .brand span {
-            color: var(--accent);
-        }
-
-        .controls {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
+        .search-box {
+            display: flex; gap: 8px; flex-grow: 1; max-width: 500px;
         }
 
         input, select, button {
             background: var(--bg-dark);
             border: 1px solid var(--border);
             color: var(--text-main);
-            padding: 8px 12px;
+            padding: 9px 14px;
             border-radius: 6px;
             font-size: 14px;
             outline: none;
         }
 
-        input[type="text"] {
-            width: 200px;
-        }
-
-        select {
-            cursor: pointer;
-            background-color: #1e212b;
-        }
+        input[type="text"] { flex-grow: 1; }
 
         button.btn-primary {
-            background: var(--accent);
-            border: none;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
+            background: var(--accent); border: none; color: white; font-weight: 600; cursor: pointer;
         }
+        button.btn-primary:hover { background: var(--accent-hover); }
 
-        button.btn-primary:hover {
-            background: var(--accent-hover);
-        }
+        main { padding: 30px; max-width: 1400px; margin: 0 auto; }
 
-        main {
-            padding: 30px;
-            flex-grow: 1;
-            max-width: 1400px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .section-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-
-        .movie-grid {
+        .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
             gap: 20px;
+            margin-top: 20px;
         }
 
         .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            flex-direction: column;
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+            overflow: hidden; cursor: pointer; transition: transform 0.2s;
         }
+        .card:hover { transform: translateY(-4px); border-color: var(--accent); }
+        .card img { width: 100%; height: 250px; object-fit: cover; }
+        .card-title { padding: 10px; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-            border-color: var(--accent);
+        /* Stream Modal */
+        .modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
         }
-
-        .card img {
-            width: 100%;
-            height: 260px;
-            object-fit: cover;
-            background: #252836;
+        .modal-box {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+            max-width: 700px; width: 100%; padding: 25px; position: relative;
         }
-
-        .card-info {
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            flex-grow: 1;
+        .close-btn { position: absolute; right: 20px; top: 15px; font-size: 24px; cursor: pointer; color: var(--text-muted); }
+        .stream-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; max-height: 250px; overflow-y: auto; }
+        .stream-item {
+            background: var(--bg-dark); border: 1px solid var(--border); padding: 12px; border-radius: 6px;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
         }
-
-        .card-title {
-            font-size: 14px;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .card-meta {
-            font-size: 12px;
-            color: var(--text-muted);
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 20px;
-        }
-
-        .modal-content {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            width: 100%;
-            max-width: 800px;
-            overflow: hidden;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .modal-header {
-            padding: 15px 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .close-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        .close-btn:hover {
-            color: #fff;
-        }
-
-        .modal-body {
-            padding: 20px;
-            display: flex;
-            gap: 20px;
-        }
-
-        .modal-poster {
-            width: 200px;
-            border-radius: 8px;
-            object-fit: cover;
-        }
-
-        .modal-details {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .trailer-container {
-            width: 100%;
-            height: 250px;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #000;
-            margin-top: 10px;
-        }
-
-        .trailer-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        @media (max-width: 600px) {
-            .modal-body {
-                flex-direction: column;
-            }
-            .modal-poster {
-                width: 100%;
-                height: 200px;
-            }
-        }
+        .stream-item:hover { border-color: var(--accent); }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="brand"><span>VERGA</span> Dashboard</div>
-        <div class="controls">
-            <select id="serverSelect">
-                <option value="0">Main 1 (VidSrc.cc)</option>
-                <option value="1">Main 2 (VidSrc.to)</option>
-                <option value="2">Main 3 (VidSrc.su)</option>
-                <option value="3">Main 4 (VidLink)</option>
-                <option value="4">Main 5 (MultiEmbed)</option>
-                <option value="5">Main 6 (AutoEmbed)</option>
-                <option value="6">Main 7 (MoviesAPI)</option>
-                <option value="7">Main 8 (VidZee)</option>
-                <option value="8">Main 9 (2Embed)</option>
-                <option value="9">Main 10 (VidFast)</option>
-                <option value="10">Multi-language (VidSrc Me)</option>
-                <option value="11">Premium embeds (VidSrc VIP)</option>
-            </select>
-            <input type="text" id="manualId" placeholder="IMDb ID (tt1375666)">
-            <button class="btn-primary" onclick="launchManual()">Quick Stream</button>
+        <div class="brand"><span>VERGA</span> Stremio Portal</div>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search movies or IMDb ID (e.g. tt1375666)...">
+            <button class="btn-primary" onclick="searchMedia()">Search</button>
         </div>
+        <a href="https://web.stremio.com" target="_blank" class="btn-primary" style="text-decoration:none; padding: 9px 14px; border-radius: 6px; font-size: 14px;">Open Official Stremio Web</a>
     </header>
 
     <main>
-        <div class="section-title">
-            <span>Featured Movies & Shows</span>
-        </div>
-        <div class="movie-grid" id="catalogGrid"></div>
+        <h2 id="catalogTitle">Popular Stremio Catalog</h2>
+        <div class="grid" id="movieGrid"></div>
     </main>
 
-    <div class="modal-overlay" id="mediaModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modalTitle">Media Details</h3>
-                <button class="close-btn" onclick="closeModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <img id="modalPoster" class="modal-poster" src="" alt="Poster">
-                <div class="modal-details">
-                    <p id="modalOverview" style="color: var(--text-muted); font-size: 14px;"></p>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn-primary" style="padding: 10px 20px;" onclick="playSelectedStream()">▶ Stream Movie</button>
-                    </div>
-                    <div class="trailer-container" id="trailerBox"></div>
-                </div>
-            </div>
+    <div class="modal" id="streamModal">
+        <div class="modal-box">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3 id="modalMediaTitle">Movie Title</h3>
+            <p style="color: var(--text-muted); font-size: 13px; margin-top: 5px;">Select a stream server below to play:</p>
+            
+            <div class="stream-list" id="streamList"></div>
         </div>
     </div>
 
     <script>
-        const catalog = [
-            { id: "tt1375666", title: "Inception", year: 2010, type: "Movie", poster: "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg", youtube: "YoHD9XEInc0", desc: "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea." },
-            { id: "tt0816692", title: "Interstellar", year: 2014, type: "Movie", poster: "https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGc@._V1_SX300.jpg", youtube: "zSWdZVtXT7E", desc: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival." },
-            { id: "tt0468569", title: "The Dark Knight", year: 2008, type: "Movie", poster: "https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_SX300.jpg", youtube: "EXeTwQWrcwY", desc: "When the menace known as the Joker wreaks havoc and chaos on Gotham, Batman must accept one of the greatest tests." },
-            { id: "tt15398776", title: "Oppenheimer", year: 2023, type: "Movie", poster: "https://m.media-amazon.com/images/M/MV5BN2JkMDc5MGQtZGUzMC00NmE5LWEiNGYtMjc3NWJhM2E3N2ExXkEyXkFqcGc@._V1_SX300.jpg", youtube: "uYPbbksJxIg", desc: "The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb." },
-            { id: "tt0944947", title: "Game of Thrones", year: 2011, type: "TV Series", poster: "https://m.media-amazon.com/images/M/MV5BNDgwNzI1NTI1M15BMl5BanBnXkFtZTgwMDM2MDgzTE@._V1_SX300.jpg", youtube: "gcTkNV5Vg1E", desc: "Nine noble families fight for control over the lands of Westeros, while an ancient enemy returns." },
-            { id: "tt0903747", title: "Breaking Bad", year: 2008, type: "TV Series", poster: "https://m.media-amazon.com/images/M/MV5BMzU5ZGYzNmQtMTdhYy00OGRiLTg0NmQtYjVjNzliZTg1ZGE4XkEyXkFqcGc@._V1_SX300.jpg", youtube: "HhesaQXLuRY", desc: "A chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing methamphetamine." }
+        const defaultMovies = [
+            { id: "tt1375666", title: "Inception", poster: "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg" },
+            { id: "tt0816692", title: "Interstellar", poster: "https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGc@._V1_SX300.jpg" },
+            { id: "tt0468569", title: "The Dark Knight", poster: "https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_SX300.jpg" },
+            { id: "tt15398776", title: "Oppenheimer", poster: "https://m.media-amazon.com/images/M/MV5BN2JkMDc5MGQtZGUzMC00NmE5LWEiNGYtMjc3NWJhM2E3N2ExXkEyXkFqcGc@._V1_SX300.jpg" },
+            { id: "tt0944947", title: "Game of Thrones", poster: "https://m.media-amazon.com/images/M/MV5BNDgwNzI1NTI1M15BMl5BanBnXkFtZTgwMDM2MDgzTE@._V1_SX300.jpg" },
+            { id: "tt0903747", title: "Breaking Bad", poster: "https://m.media-amazon.com/images/M/MV5BMzU5ZGYzNmQtMTdhYy00OGRiLTg0NmQtYjVjNzliZTg1ZGE4XkEyXkFqcGc@._V1_SX300.jpg" }
         ];
 
-        const servers = [
-            (id, s, e) => s ? `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}` : `https://vidsrc.cc/v2/embed/movie/${id}`,
-            (id, s, e) => s ? `https://vidsrc.to/embed/tv/${id}/${s}/${e}` : `https://vidsrc.to/embed/movie/${id}`,
-            (id, s, e) => s ? `https://vidsrc.su/embed/tv/${id}/${s}/${e}` : `https://vidsrc.su/embed/movie/${id}`,
-            (id, s, e) => s ? `https://vidlink.pro/tv/${id}/${s}/${e}` : `https://vidlink.pro/movie/${id}`,
-            (id, s, e) => `https://multiembed.mov/?video_id=${id}${s ? `&s=${s}&e=${e}` : ''}`,
-            (id, s, e) => `https://player.autoembed.cc/embed/movie/${id}`, (id, s, e) => s ? `https://moviesapi.club/tv/${id}-${s}-${e}` : `https://moviesapi.club/movie/${id}`, (id, s, e) => `https://vidzee.za.com/embed/${id}`,
-            (id, s, e) => s ? `https://www.2embed.stream/embed/tv/${id}/${s}/${e}` : `https://www.2embed.stream/embed/movie/${id}`,
-            (id, s, e) => s ? `https://vidfast.pro/embed/tv/${id}/${s}/${e}` : `https://vidfast.pro/embed/movie/${id}`,
-            (id, s, e) => s ? `https://vidsrc.me/embed/tv?imdb=${id}&s=${s}&e=${e}` : `https://vidsrc.me/embed/movie?imdb=${id}`,
-            (id, s, e) => s ? `https://vidsrc.vip/embed/tv/${id}/${s}/${e}` : `https://vidsrc.vip/embed/movie/${id}`
+        const streamProviders = [
+            { name: "Server 1 (VidSrc.cc)", url: id => `https://vidsrc.cc/v2/embed/movie/${id}` },
+            { name: "Server 2 (VidSrc.to)", url: id => `https://vidsrc.to/embed/movie/${id}` },
+            { name: "Server 3 (VidLink Pro)", url: id => `https://vidlink.pro/movie/${id}` },
+            { name: "Server 4 (MultiEmbed)", url: id => `https://multiembed.mov/?video_id=${id}` },
+            { name: "Server 5 (AutoEmbed)", url: id => `https://player.autoembed.cc/embed/movie/${id}` },
+            { name: "Server 6 (2Embed)", url: id => `https://www.2embed.stream/embed/movie/${id}` },
+            { name: "Server 7 (VidSrc VIP)", url: id => `https://vidsrc.vip/embed/movie/${id}` }
         ];
 
-        let activeMedia = null;
+        function renderMovies(list) {
+            const grid = document.getElementById('movieGrid');
+            grid.innerHTML = list.map(m => `
+                <div class="card" onclick="openStreamSelector('${m.id}', '${m.title.replace(/'/g, "\\'")}')">
+                    <img src="${m.poster}" alt="${m.title}">
+                    <div class="card-title">${m.title}</div>
+                </div>
+            `).join('');
+        }
 
-        function renderCatalog() {
-            const grid = document.getElementById('catalogGrid');
-            grid.innerHTML = catalog.map(item => `
-                <div class="card" onclick
+        function openStreamSelector(imdbId, title) {
+            document.getElementById('modalMediaTitle').innerText = title;
+            const container = document.getElementById('streamList');
+            
+            container.innerHTML = streamProviders.map(p => `
+                <div class="stream-item" onclick="launchStream('${p.url(imdbId)}')">
+                    <span><strong>${p.name}</strong></span>
+                    <button class="btn-primary" style="padding:6px 12px;">▶ Play Stream</button>
+                </div>
+            `).join('');
+
+            document.getElementById('streamModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('streamModal').style.display = 'none';
+        }
+
+        function launchStream(url) {
+            const win = window.open(url, '_blank', 'noopener,noreferrer');
+            if (win) win.opener = null;
+        }
+
+        function searchMedia() {
+            const q = document.getElementById('searchInput').value.trim();
+            if (!q) return;
+            if (q.startsWith('tt')) {
+                openStreamSelector(q, `Media ${q}`);
+            } else {
+                alert(`Searching for "${q}". Click any card below or enter a direct IMDb ID (tt...) to stream instantly.`);
+            }
+        }
+
+        renderMovies(defaultMovies);
+    </script>
+</body>
+</html>
