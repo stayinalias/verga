@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stremio Web Stream Center</title>
+    <title>VERGA - Streaming Dashboard</title>
     <style>
         :root {
-            --bg-dark: #0b0d12;
-            --bg-panel: #131722;
-            --bg-card: #1a1f2c;
+            --bg-dark: #0f1117;
+            --bg-card: #181a20;
+            --bg-header: #13151b;
             --accent: #6366f1;
             --accent-hover: #4f46e5;
             --text-main: #f3f4f6;
             --text-muted: #9ca3af;
-            --border: #2a3142;
-            --card-radius: 10px;
+            --border: #2a2d3d;
         }
 
         * {
@@ -32,42 +31,40 @@
             flex-direction: column;
         }
 
-        /* Top Navbar */
         header {
-            background: var(--bg-panel);
+            background: var(--bg-header);
             border-bottom: 1px solid var(--border);
-            padding: 14px 24px;
+            padding: 15px 30px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 16px;
+            gap: 20px;
             position: sticky;
             top: 0;
             z-index: 100;
         }
 
-        .brand-logo {
+        .brand {
             font-size: 20px;
-            font-weight: 800;
-            letter-spacing: 0.5px;
+            font-weight: 700;
             color: #fff;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .brand-logo span {
+        .brand span {
             color: var(--accent);
         }
 
-        .search-container {
+        .controls {
             display: flex;
-            gap: 8px;
-            flex-grow: 1;
-            max-width: 550px;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
-        input[type="text"], input[type="number"], select {
+        input, select, button {
             background: var(--bg-dark);
             border: 1px solid var(--border);
             color: var(--text-main);
@@ -75,15 +72,10 @@
             border-radius: 6px;
             font-size: 14px;
             outline: none;
-            transition: border-color 0.2s;
-        }
-
-        input[type="text"]:focus, select:focus {
-            border-color: var(--accent);
         }
 
         input[type="text"] {
-            flex-grow: 1;
+            width: 220px;
         }
 
         button.btn-primary {
@@ -91,71 +83,59 @@
             border: none;
             color: white;
             font-weight: 600;
-            padding: 9px 18px;
-            border-radius: 6px;
             cursor: pointer;
             transition: background 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
         }
 
         button.btn-primary:hover {
             background: var(--accent-hover);
         }
 
-        /* Main Catalog View */
         main {
-            padding: 24px;
-            max-width: 1440px;
+            padding: 30px;
+            flex-grow: 1;
+            max-width: 1400px;
             margin: 0 auto;
             width: 100%;
-            flex-grow: 1;
         }
 
-        .catalog-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
             margin-bottom: 20px;
         }
 
-        .catalog-title {
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        .grid {
+        .movie-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             gap: 20px;
         }
 
-        .movie-card {
+        .card {
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: var(--card-radius);
+            border-radius: 10px;
             overflow: hidden;
             cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
             display: flex;
             flex-direction: column;
         }
 
-        .movie-card:hover {
+        .card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
             border-color: var(--accent);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
 
-        .movie-card img {
+        .card img {
             width: 100%;
-            height: 250px;
+            height: 260px;
             object-fit: cover;
-            background: #252b3b;
+            background: #252836;
         }
 
-        .card-body {
+        .card-info {
             padding: 12px;
             display: flex;
             flex-direction: column;
@@ -164,7 +144,7 @@
         }
 
         .card-title {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
@@ -172,18 +152,20 @@
         }
 
         .card-meta {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text-muted);
             display: flex;
             justify-content: space-between;
         }
 
-        /* Detail & Stream Selector Modal */
+        /* Modal Overlay */
         .modal-overlay {
             position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(4px);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
             display: none;
             align-items: center;
             justify-content: center;
@@ -191,21 +173,21 @@
             padding: 20px;
         }
 
-        .modal-card {
-            background: var(--bg-panel);
+        .modal-content {
+            background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 12px;
-            max-width: 800px;
             width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
+            max-width: 800px;
+            overflow: hidden;
             position: relative;
             display: flex;
             flex-direction: column;
+            max-height: 90vh;
         }
 
         .modal-header {
-            padding: 16px 20px;
+            padding: 15px 20px;
             border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
@@ -218,46 +200,41 @@
             color: var(--text-muted);
             font-size: 24px;
             cursor: pointer;
-            line-height: 1;
         }
 
-        .close-btn:hover { color: #fff; }
+        .close-btn:hover {
+            color: #fff;
+        }
 
-        .modal-content-grid {
+        .modal-body {
             padding: 20px;
             display: flex;
             gap: 20px;
+            overflow-y: auto;
         }
 
         .modal-poster {
-            width: 200px;
+            width: 180px;
             border-radius: 8px;
             object-fit: cover;
+            height: 260px;
             flex-shrink: 0;
         }
 
         .modal-details {
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
-            gap: 14px;
-            flex-grow: 1;
-        }
-
-        .tv-controls {
-            display: none;
-            gap: 10px;
-            margin-top: 5px;
-        }
-
-        .tv-controls input {
-            width: 90px;
+            gap: 12px;
         }
 
         /* Stream Selector Drawer */
-        .stream-section {
-            margin-top: 15px;
-            border-top: 1px solid var(--border);
-            padding-top: 15px;
+        .stream-box {
+            background: #12141c;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
         }
 
         .stream-list {
@@ -265,62 +242,153 @@
             flex-direction: column;
             gap: 8px;
             margin-top: 10px;
-            max-height: 220px;
+            max-height: 180px;
             overflow-y: auto;
         }
 
-        .stream-node {
-            background: var(--bg-card);
+        .stream-option {
+            background: #1b1f2b;
             border: 1px solid var(--border);
-            padding: 12px 16px;
-            border-radius: 8px;
+            padding: 8px 12px;
+            border-radius: 6px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
-            transition: border-color 0.2s, background 0.2s;
         }
 
-        .stream-node:hover {
+        .stream-option:hover {
             border-color: var(--accent);
-            background: #212738;
         }
 
-        .stream-badge {
-            background: #2e3548;
-            color: var(--accent);
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        @media (max-width: 650px) {
-            .modal-content-grid { flex-direction: column; }
-            .modal-poster { width: 100%; height: 220px; }
+        @media (max-width: 600px) {
+            .modal-body {
+                flex-direction: column;
+            }
+            .modal-poster {
+                width: 100%;
+                height: 200px;
+            }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="brand-logo"><span>VERGA</span> STREMIO</div>
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Search movies, TV shows or IMDb ID (tt1375666)...">
-            <button class="btn-primary" onclick="handleSearch()">Search</button>
+        <div class="brand"><span>VERGA</span> Dashboard</div>
+        <div class="controls">
+            <input type="text" id="manualId" placeholder="IMDb ID (tt1375666)">
+            <button class="btn-primary" onclick="launchManualStream()">Quick Stream</button>
         </div>
     </header>
 
     <main>
-        <div class="catalog-header">
-            <h2 class="catalog-title" id="catalogHeading">Trending Catalog</h2>
+        <div class="section-title">
+            <span>Catalog & Media Library</span>
         </div>
-        <div class="grid" id="catalogGrid"></div>
+        <div class="movie-grid" id="catalogGrid"></div>
     </main>
 
-    <!-- Detailed Modal & Stream Selector -->
-    <div class="modal-overlay" id="streamModal">
-        <div class="modal-card">
+    <!-- Details Modal with Stream Selector -->
+    <div class="modal-overlay" id="mediaModal">
+        <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalMediaTitle">Media Details</h3>
-                <button class="
+                <h3 id="modalTitle">Media Details</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <img id="modalPoster" class="modal-poster" src="" alt="Poster">
+                <div class="modal-details">
+                    <p id="modalOverview" style="color: var(--text-muted); font-size: 13.5px; line-height: 1.5;"></p>
+                    
+                    <div class="stream-box">
+                        <div style="font-weight: 600; font-size: 13px; margin-bottom: 5px;">Select Stream Server</div>
+                        <div class="stream-list" id="streamList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const catalog = [
+            { id: "tt1375666", title: "Inception", year: 2010, type: "Movie", poster: "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg", desc: "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea." },
+            { id: "tt0816692", title: "Interstellar", year: 2014, type: "Movie", poster: "https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGc@._V1_SX300.jpg", desc: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival." },
+            { id: "tt0468569", title: "The Dark Knight", year: 2008, type: "Movie", poster: "https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_SX300.jpg", desc: "When the menace known as the Joker wreaks havoc and chaos on Gotham, Batman must accept one of the greatest tests." },
+            { id: "tt15398776", title: "Oppenheimer", year: 2023, type: "Movie", poster: "https://m.media-amazon.com/images/M/MV5BN2JkMDc5MGQtZGUzMC00NmE5LWEiNGYtMjc3NWJhM2E3N2ExXkEyXkFqcGc@._V1_SX300.jpg", desc: "The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb." },
+            { id: "tt0944947", title: "Game of Thrones", year: 2011, type: "TV Series", poster: "https://m.media-amazon.com/images/M/MV5BNDgwNzI1NTI1M15BMl5BanBnXkFtZTgwMDM2MDgzTE@._V1_SX300.jpg", desc: "Nine noble families fight for control over the lands of Westeros, while an ancient enemy returns." },
+            { id: "tt0903747", title: "Breaking Bad", year: 2008, type: "TV Series", poster: "https://m.media-amazon.com/images/M/MV5BMzU5ZGYzNmQtMTdhYy00OGRiLTg0NmQtYjVjNzliZTg1ZGE4XkEyXkFqcGc@._V1_SX300.jpg", desc: "A chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing methamphetamine." }
+        ];
+
+        const servers = [
+            { name: "VidSrc.cc (Main)", getUrl: id => `https://vidsrc.cc/v2/embed/movie/${id}` },
+            { name: "VidSrc.to (Fast)", getUrl: id => `https://vidsrc.to/embed/movie/${id}` },
+            { name: "VidSrc.su (Mirror)", getUrl: id => `https://vidsrc.su/embed/movie/${id}` },
+            { name: "VidLink Pro", getUrl: id => `https://vidlink.pro/movie/${id}` },
+            { name: "MultiEmbed", getUrl: id => `https://multiembed.mov/?video_id=${id}` },
+            { name: "AutoEmbed", getUrl: id => `https://player.autoembed.cc/embed/movie/${id}` },
+            { name: "2Embed", getUrl: id => `https://www.2embed.stream/embed/movie/${id}` },
+            { name: "VidSrc VIP", getUrl: id => `https://vidsrc.vip/embed/movie/${id}` }
+        ];
+
+        let activeId = null;
+
+        function renderCatalog() {
+            const grid = document.getElementById('catalogGrid');
+            grid.innerHTML = catalog.map(item => `
+                <div class="card" onclick="openModal('${item.id}')">
+                    <img src="${item.poster}" alt="${item.title}">
+                    <div class="card-info">
+                        <div class="card-title">${item.title}</div>
+                        <div class="card-meta">
+                            <span>${item.year}</span>
+                            <span>${item.type}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openModal(id) {
+            const item = catalog.find(m => m.id === id);
+            if (!item) return;
+            activeId = item.id;
+
+            document.getElementById('modalTitle').innerText = item.title + ` (${item.year})`;
+            document.getElementById('modalPoster').src = item.poster;
+            document.getElementById('modalOverview').innerText = item.desc;
+
+            // Populate stream server options
+            const streamList = document.getElementById('streamList');
+            streamList.innerHTML = servers.map(srv => `
+                <div class="stream-option" onclick="launchStream('${srv.getUrl(activeId)}')">
+                    <span style="font-size: 13px; font-weight: 600;">${srv.name}</span>
+                    <button class="btn-primary" style="padding: 4px 10px; font-size: 12px;">▶ Stream</button>
+                </div>
+            `).join('');
+
+            document.getElementById('mediaModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('mediaModal').style.display = 'none';
+        }
+
+        function launchStream(url) {
+            const win = window.open(url, '_blank', 'noopener,noreferrer');
+            if (win) win.opener = null;
+        }
+
+        function launchManualStream() {
+            const id = document.getElementById('manualId').value.trim();
+            if (!id) {
+                alert("Please enter a valid IMDb ID");
+                return;
+            }
+            openModal(id);
+        }
+
+        renderCatalog();
+    </script>
+</body>
+</html>
