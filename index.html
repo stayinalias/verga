@@ -27,14 +27,13 @@
             overflow: hidden;
         }
 
-        /* Top control bar */
         .top-bar {
-            height: 60px;
+            height: 70px;
             background: var(--panel-bg);
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
-            padding: 0 20px;
+            padding: 0 25px;
             gap: 15px;
             flex-shrink: 0;
             box-sizing: border-box;
@@ -45,7 +44,7 @@
             background: var(--bg-color);
             border: 1px solid var(--border-color);
             color: #fff;
-            padding: 8px 12px;
+            padding: 9px 14px;
             border-radius: 6px;
             font-size: 14px;
             outline: none;
@@ -56,7 +55,7 @@
         }
 
         input[type="number"] {
-            width: 70px;
+            width: 75px;
         }
 
         .server-select-wrapper {
@@ -68,7 +67,7 @@
             background: var(--dropdown-bg);
             border: 1px solid var(--border-color);
             color: var(--text-main);
-            padding: 8px 35px 8px 14px;
+            padding: 10px 35px 10px 14px;
             border-radius: 6px;
             font-size: 14px;
             font-weight: 600;
@@ -88,7 +87,7 @@
             font-size: 9px;
             color: var(--text-muted);
             position: absolute;
-            right: 12px;
+            right: 14px;
             top: 50%;
             transform: translateY(-50%);
             pointer-events: none;
@@ -98,10 +97,11 @@
             background: var(--accent);
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
+            font-size: 14px;
             transition: background 0.2s;
         }
 
@@ -109,18 +109,36 @@
             background: #2563eb;
         }
 
-        .player-wrapper {
+        .dashboard-content {
             flex-grow: 1;
-            background: #000;
-            width: 100%;
-            height: calc(100vh - 60px);
-            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
         }
 
-        iframe {
+        .card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 40px;
+            border-radius: 12px;
+            max-width: 500px;
             width: 100%;
-            height: 100%;
-            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 22px;
+            color: #fff;
+        }
+
+        p {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.5;
         }
     </style>
 </head>
@@ -128,7 +146,7 @@
 
     <div class="top-bar">
         <div class="server-select-wrapper">
-            <select id="serverSelect" class="server-dropdown" onchange="updateStream()">
+            <select id="serverSelect" class="server-dropdown">
                 <option value="0">Main 1 (VidSrc.cc)</option>
                 <option value="1">Main 2 (VidSrc.to)</option>
                 <option value="2">Main 3 (VidSrc.su)</option>
@@ -145,14 +163,16 @@
         </div>
 
         <input type="text" id="mediaId" placeholder="IMDb ID (e.g. tt1375666)" value="tt1375666">
-        <input type="number" id="seasonNum" placeholder="Season" onchange="updateStream()">
-        <input type="number" id="episodeNum" placeholder="Ep" onchange="updateStream()">
-        <button class="load-btn" onclick="updateStream()">Load Stream</button>
+        <input type="number" id="seasonNum" placeholder="Season">
+        <input type="number" id="episodeNum" placeholder="Ep">
+        <button class="load-btn" onclick="launchStream()">Open Stream</button>
     </div>
 
-    <div class="player-wrapper">
-        <!-- Secure sandbox restricts the frame from hijacking your browser or locking your page -->
-        <iframe id="streamFrame" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock"></iframe>
+    <div class="dashboard-content">
+        <div class="card">
+            <h2>Multi-Server Stream Control</h2>
+            <p>Your control panel is safe and unlocked. Select any server from the dropdown, enter an IMDb ID (and Season/Episode if it's a TV series), and click <strong>Open Stream</strong> to launch the player instantly without sandbox errors or screen freezes!</p>
+        </div>
     </div>
 
     <script>
@@ -171,20 +191,21 @@
             (id, s, e) => s ? `https://vidsrc.vip/embed/tv/${id}/${s}/${e}` : `https://vidsrc.vip/embed/movie/${id}`
         ];
 
-        function updateStream() {
+        function launchStream() {
             const selectElement = document.getElementById('serverSelect');
             const serverIndex = parseInt(selectElement.value);
             const id = document.getElementById('mediaId').value.trim();
             const s = document.getElementById('seasonNum').value;
             const e = document.getElementById('episodeNum').value;
 
-            if (!id) return;
+            if (!id) {
+                alert("Please enter a valid IMDb ID!");
+                return;
+            }
 
             const targetUrl = servers[serverIndex](id, s, e);
-            document.getElementById('streamFrame').src = targetUrl;
+            window.open(targetUrl, '_blank');
         }
-
-        updateStream();
     </script>
 </body>
 </html>
